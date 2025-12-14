@@ -33,7 +33,11 @@ const currentDepartment = ref('Finance'); // 默认显示财务部
 const departments = [
   { key: 'Finance', name: '财务部' },
   { key: 'HR', name: '人力资源部' },
-  { key: 'R&D', name: '研发部' }
+  // ⭐️ 修正点：增加研发部细分选项
+  { key: 'R&D', name: '研发部 (全部)' },
+  { key: 'R&D-1059', name: '研发部 (1059领导)' },
+  { key: 'R&D-1007', name: '研发部 (1007领导)' },
+  { key: 'R&D-1068', name: '研发部 (1068领导)' }
 ];
 
 const selectDepartment = (deptKey) => {

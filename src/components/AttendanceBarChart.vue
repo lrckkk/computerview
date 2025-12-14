@@ -10,17 +10,22 @@ import { ref, onMounted, watch, onUnmounted } from 'vue';
 import * as echarts from 'echarts';
 import { processBarChartData } from '@/utils/attendanceProcessor.js';
 
+// ⭐️ 修正点：扩展部门名称映射
 const departmentNames = {
   'Finance': '财务部',
   'HR': '人力资源部',
-  'R&D': '研发部'
+  'R&D': '研发部 (全部)',
+  'R&D-1059': '研发部 (1059领导)',
+  'R&D-1007': '研发部 (1007领导)',
+  'R&D-1068': '研发部 (1068领导)'
 };
 
 const props = defineProps({
   department: {
     type: String,
     required: true,
-    validator: (value) => ['Finance', 'HR', 'R&D'].includes(value)
+    // ⭐️ 修正点：更新验证规则
+    validator: (value) => ['Finance', 'HR', 'R&D', 'R&D-1059', 'R&D-1007', 'R&D-1068'].includes(value)
   }
 });
 

@@ -1,15 +1,16 @@
+// src/components/ParallelLogChart.vue
+
 <template>
   <div class="chart-container">
     <h2>登录日志及上下行流量数据平行坐标图</h2>
     <p class="chart-description">
-      本图已对大规模日志数据进行 **二级聚合降维** 处理。请使用图表上方的 **区域选择 (Brush)** 工具，在各轴上拖动鼠标进行刷取操作，交互查看筛选结果的原始日志详情。
+      本图已对大规模日志数据进行聚合降维处理。请使用图表上方的 **区域选择 (Brush)** 工具，在各轴上拖动鼠标进行刷取操作，交互查看筛选结果的原始日志详情。
     </p>
 
     <div v-if="isLoading" class="loading-overlay">
       <div class="spinner"></div>
       <p>正在处理日志数据，请稍候... (数据聚合需要时间)</p>
     </div>
-
 
     <div ref="chartRef" class="parallel-chart" :style="{ opacity: isLoading ? 0.3 : 1 }"></div>
 
@@ -40,7 +41,6 @@
 <script setup lang="js">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
-// 确保路径正确
 import { processParallelChartData } from '@/utils/logDataProcessor.js';
 
 const chartRef = ref(null);
@@ -115,6 +115,11 @@ const updateSelectionInfo = (selectedIndices) => {
 
   // 仅预览前 5 条原始日志
   rawSelectedLogs.value = collectedRawLogs.slice(0, 5);
+};
+
+// 确保 resizeChart 在 setup 作用域中，解决上一步的 ReferenceError
+const resizeChart = () => {
+  myChart && myChart.resize();
 };
 
 const renderChart = () => {
@@ -197,8 +202,9 @@ const renderChart = () => {
       }
     })),
     parallel: {
-      left: '5%',
-      right: '18%',
+      // ⭐️ 修正: 调整左右边距，使图表更居中且避免溢出
+      left: '8%',
+      right: '8%',
       bottom: '10%',
       top: '20%',
       layout: 'horizontal',
@@ -219,7 +225,6 @@ const renderChart = () => {
         type: 'parallel',
         smooth: true,
         data: chartData.seriesData,
-        // 激进修正：提高线条宽度和透明度，并移除 large: true 确保稀疏数据渲染
         lineStyle: {
           width: 2,
           opacity: 1.0
@@ -227,14 +232,12 @@ const renderChart = () => {
         inactiveOpacity: 0.05,
         activeOpacity: 1,
         color: ['#5AD8A6', '#F7B74E', '#5B8FF9'],
-        // large: true // 移除此行，强制渲染稀疏线条
       }
     ]
   };
 
   myChart.setOption(option);
 
-  // 修正后的 brushSelected 监听器逻辑
   myChart.on('brushSelected', function (params) {
     let selectedIndices = [];
 
@@ -249,9 +252,6 @@ const renderChart = () => {
     updateSelectionInfo(selectedIndices);
   });
 
-  const resizeChart = () => {
-    myChart && myChart.resize();
-  };
   window.addEventListener('resize', resizeChart);
 };
 

@@ -42,7 +42,8 @@ const selectDepartment = (deptKey) => {
 /* 视图内部的样式，避免影响全局 */
 .graph-view {
   text-align: center;
-  padding-top: 20px;
+  /* ⭐️ 修正：将 padding-top: 20px 改为 padding: 20px */
+  padding: 20px;
 }
 h1 {
   margin-top: 0;
@@ -53,23 +54,17 @@ h1 {
   margin-bottom: 20px;
 }
 .tabs button {
-  padding: 10px 20px;
+  padding: 10px 15px;
   margin: 0 5px;
   border: 1px solid #ccc;
-  background: #f9f9f9;
+  background-color: #f0f0f0;
   cursor: pointer;
   border-radius: 4px;
-  transition: all 0.2s;
+  transition: background-color 0.3s;
 }
 .tabs button.active {
-  background: #42b983;
+  background-color: #5B8FF9;
   color: white;
-  border-color: #42b983;
-  font-weight: bold;
-}
-hr {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 20px 0;
+  border-color: #5B8FF9;
 }
 </style>

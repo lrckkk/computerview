@@ -2,6 +2,8 @@
 
 import profileData from '../assets/employee_profile.json';
 import checkingData from '../assets/checking_clean.json';
+// ⭐️ 修正点：导入研发部结构数据
+import rdStructure from '../assets/final_rd_structure.json';
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 // 视觉显示顺序 (Top -> Bottom): 财务部（上） -> 人力资源部（中） -> 研发部（下）
@@ -50,14 +52,39 @@ YAXIS_LOAD_ORDER.forEach(dept => {
 });
 const uniqueEmployeeIds = new Set(sortedEmployeeIds);
 
+// ⭐️ 修正点：R&D sub-department member mapping (新增)
+const rdSubDeptEmployeeIds = {
+    'R&D-1059': [],
+    'R&D-1007': [],
+    'R&D-1068': []
+};
+
+// 填充 R&D 细分部门映射
+rdStructure.forEach(structure => {
+    const key = `R&D-${structure.minister_id}`;
+    if (rdSubDeptEmployeeIds.hasOwnProperty(key)) {
+        // IDs in rdStructure are strings, match the processing
+        rdSubDeptEmployeeIds[key] = structure.members.map(String);
+    }
+});
+
 
 // 供柱形图使用的函数 (已修改为返回比例数据)
 export function processBarChartData(department) {
     const TIME_BINS = 24 * 4;
     const BIN_SIZE_MS = 15 * 60 * 1000;
-    const targetEmployeeIds = Array.from(employeeDeptMap.entries())
-        .filter(([id, dept]) => dept === department)
-        .map(([id]) => id);
+
+    let targetEmployeeIds = [];
+
+    // ⭐️ 核心修正：根据 department key 确定目标员工 ID 列表
+    if (department.startsWith('R&D-')) {
+        // 针对 R&D 子部门
+        targetEmployeeIds = rdSubDeptEmployeeIds[department] || [];
+    } else {
+        // 针对 Finance, HR, 或 R&D (全部)
+        targetEmployeeIds = deptEmployeeIds[department] || [];
+    }
+
 
     const checkinFreq = new Array(TIME_BINS).fill(0);
     const checkoutFreq = new Array(TIME_BINS).fill(0);
