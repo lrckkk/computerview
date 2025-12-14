@@ -9,6 +9,10 @@
         <router-link to="/attendance" class="nav-button">
           员工考勤时间分析
         </router-link>
+
+        <router-link to="/log-analysis" class="nav-button">
+          网络日志分析
+        </router-link>
       </nav>
 
       <router-view />
@@ -28,6 +32,7 @@ body {
   padding: 0;
   background-color: #f8f8f8;
 }
+
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
