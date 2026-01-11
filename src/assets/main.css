@@ -1,0 +1,50 @@
+/* src/assets/main.css */
+
+/* 1. 引入现代字体 (可选，让数字和英文更漂亮) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* 核心配色：清爽蓝调 */
+  --primary-color: #3b82f6; 
+  --bg-color: #f3f4f6; /* 浅灰背景，护眼且显高级 */
+  --card-bg: #ffffff;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  
+  /* 统一卡片阴影：悬浮感的核心 */
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --card-radius: 12px; /* 圆角更大一点 */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color); /* ⭐️ 关键：让整个网页变成浅灰 */
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 2. 定义通用的“卡片”样式类 */
+/* 以后任何图表只要加上 class="card"，就会自动变漂亮 */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.5); /* 细微质感 */
+}
+
+.card:hover {
+  transform: translateY(-2px); /* 鼠标悬停时微微上浮 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* 标题美化 */
+h1, h2, h3 {
+  font-weight: 600;
+  color: #111827;
+  margin-top: 0;
+}

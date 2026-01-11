@@ -2,8 +2,9 @@
 
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router'; // 导入路由实例
+import router from './router';
+import './assets/main.css'; // 👈 必须补上这一行，并按 Ctrl+S 保存
 
 const app = createApp(App);
-app.use(router); // 启用 Vue Router
+app.use(router);
 app.mount('#app');

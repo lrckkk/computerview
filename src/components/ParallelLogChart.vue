@@ -1,20 +1,25 @@
 // src/components/ParallelLogChart.vue
 
 <template>
-  <div class="chart-container">
-    <h2>登录日志及上下行流量数据平行坐标图</h2>
+  <div class="chart-container card">
+    <div class="chart-header">
+      <h2>登录日志及流量多维分析</h2>
+      <div class="badges">
+        <span class="badge">实时数据</span>
+        <span class="badge blue">R&D部门重点</span>
+      </div>
+    </div>
+    
     <p class="chart-description">
-      本图已对大规模日志数据进行 **二级聚合降维** 处理。请使用图表上方的 **区域选择 (Brush)** 工具，在各轴上拖动鼠标进行刷取操作，交互查看筛选结果的原始日志详情。
+      拖动坐标轴刷选数据，分析异常流量与登录失败的关联。
     </p>
 
-    <div v-if="isLoading" class="loading-overlay">
-      <div class="spinner"></div>
-      <p>正在处理日志数据，请稍候... (数据聚合需要时间)</p>
-    </div>
-
-
-    <div ref="chartRef" class="parallel-chart" :style="{ opacity: isLoading ? 0.3 : 1 }"></div>
-
+    <div 
+      ref="chartRef" 
+      class="parallel-chart" 
+      :style="{ opacity: isLoading ? 0.3 : 1 }"
+    ></div>
+    
     <div v-if="!isLoading && chartData" class="selection-info">
       <p>
         总聚合记录数: {{ chartData.seriesData.length }} 条 (对应原始日志总数: {{ chartData.totalOriginalLogs }} 条)
@@ -39,14 +44,49 @@
   </div>
 </template>
 
+<style scoped>
+/* chart-container 不需要再写 border 和 box-shadow 了，因为用了全局 .card 类 */
+.chart-container {
+  width: 100%;
+  max-width: 100%; /* 让它撑满容器 */
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6; /* 加一条淡淡的分界线 */
+}
+
+.chart-header h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* 小标签样式 */
+.badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: #ecfdf5;
+  color: #059669;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.badge.blue {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+</style>
+
 <script setup lang="js">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
-// 确保路径正确
-import { processParallelChartData } from '@/utils/logDataProcessor.js';
 
 const chartRef = ref(null);
 let myChart = null;
+let worker =null;//新增worker实例变量
 
 const isLoading = ref(true);
 let chartData = null;
@@ -139,6 +179,10 @@ const renderChart = () => {
       text: '日志聚合记录分布',
       left: 'center'
     },
+    color: [
+    '#5470c6', '#91cc75', '#fac858', '#ee6666', 
+    '#73c0de', '#3ba272', '#fc8452', '#9a60b4'
+  ],
     toolbox: {
       show: true,
       feature: {
@@ -266,27 +310,44 @@ const renderChart = () => {
 };
 
 
-onMounted(async () => {
-  try {
-    chartData = processParallelChartData();
-    isLoading.value = false;
-    await nextTick();
-    renderChart();
-    updateSelectionInfo([]);
+//核心修改：挂载时启动 Worker
+onMounted(() => {
+  isLoading.value = true;
 
-    // ⭐️ 修正点 3: 在 onMounted (组件挂载时) 只添加一次监听器。
-    window.addEventListener('resize', resizeChart);
-  } catch (error) {
-    console.error("处理平行坐标图数据失败:", error);
-    isLoading.value = false;
-  }
+  // 1. 初始化 Worker
+  worker = new Worker(new URL('../workers/logData.worker.js', import.meta.url), {
+    type: 'module'
+  });
+
+  // 2. 监听 Worker 的计算结果
+  worker.onmessage = async (e) => {
+    const { type, data, message } = e.data;
+    if (type === 'success') {
+      console.log("✅ Worker 数据处理完成");
+      chartData = data;
+      isLoading.value = false;
+      await nextTick();
+      renderChart();
+      updateSelectionInfo([]);
+      window.addEventListener('resize', resizeChart);
+    } else {
+      console.error("❌ Worker 出错:", message);
+      isLoading.value = false;
+      alert("日志处理失败，请检查控制台");
+    }
+  };
+
+  // 3. 发送开始指令
+  worker.postMessage('start');
 });
 
+// ⭐️ 销毁时终止 Worker
 onUnmounted(() => {
-  // ⭐️ 修正点 4: 在 onUnmounted (组件卸载时) 移除监听器。
   window.removeEventListener('resize', resizeChart);
-  if (myChart) {
-    myChart.dispose();
+  if (myChart) myChart.dispose();
+  if (worker) {
+    worker.terminate(); // 释放内存
+    worker = null;
   }
 });
 </script>
